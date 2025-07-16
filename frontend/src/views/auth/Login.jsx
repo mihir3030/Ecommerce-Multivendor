@@ -14,9 +14,9 @@ function Login() {
 
   useEffect(() => {
     if (isLoggedIn()) {
-      navigate("/");
+      navigate("/dashboard");
     }
-  }, [isLoading]);
+  }, []);
 
   // Reset Form reset valu of email and password
   const resetForm = () => {
@@ -33,7 +33,7 @@ function Login() {
     if (error) {
       alert(error);
     } else {
-      navigate("/");
+      navigate("/dashboard");
       resetForm();
     }
     setIsLoading(false);
