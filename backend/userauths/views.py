@@ -52,6 +52,7 @@ class PasswordResetEmailVerify(generics.RetrieveAPIView):
             otp = user.otp
 
             link = f"http://localhost:5173/create-new-password?otp={otp}&uidb64={uidb64}"
+            print(link)
 
 
             # send email
@@ -69,14 +70,14 @@ class PasswordChangeView(generics.CreateAPIView):
 
         otp = payload['otp']
         uidb64 = payload['uidb64']
-        reset_token = payload['reset_token']
+        # reset_token = payload['reset_token']
         password = payload['password']
 
         user = User.objects.get(id=uidb64, otp=otp)
         if user:
             user.set_password(password)
             user.otp = ""
-            user.reset_token = reset_token
+            # user.reset_token = reset_token
             user.save()
 
             return Response({"message": "password change succesfully"}, status=status.HTTP_201_CREATED)
