@@ -1,3 +1,5 @@
+from rest_framework.response import Response
+from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -57,3 +59,27 @@ class PasswordResetEmailVerify(generics.RetrieveAPIView):
         return user
 
     
+
+class PasswordChangeView(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = UserSerializer
+
+    def create(self, request, *args, **kwargs):
+        payload = request.data
+
+        otp = payload['otp']
+        uidb64 = payload['uidb64']
+        reset_token = payload['reset_token']
+        password = payload['password']
+
+        user = User.objects.get(id=uidb64, otp=otp)
+        if user:
+            user.set_password(password)
+            user.otp = ""
+            user.reset_token = reset_token
+            user.save()
+
+            return Response({"message": "password change succesfully"}, status=status.HTTP_201_CREATED)
+        
+        else:
+            return Response({"message": "An error occured"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
