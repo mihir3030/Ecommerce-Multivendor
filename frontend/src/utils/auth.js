@@ -54,8 +54,8 @@ export const register = async (full_name, email, phone, password, password2) => 
 
 // user logout
 export const logout = () => {
-    cookies.remove("access_token")
-    cookies.remove("refresh_token")
+    cookies.remove("access_token", {path: "/"})
+    cookies.remove("refresh_token", {path: "/"})
 
     // set user null in our store
     useAuthStore.getState().setUser(null)
