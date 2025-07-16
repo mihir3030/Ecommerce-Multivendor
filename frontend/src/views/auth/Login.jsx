@@ -16,7 +16,7 @@ function Login() {
     if (isLoggedIn()) {
       navigate("/");
     }
-  });
+  }, [isLoading]);
 
   // Reset Form reset valu of email and password
   const resetForm = () => {
