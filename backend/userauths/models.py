@@ -10,6 +10,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)  # email is required and Unique
     full_name = models.CharField(max_length=100, null=True, blank=True)  # from frontend it will be required
     phone = models.CharField(max_length=20, null=True, blank=True)
+    otp = models.CharField(max_length=10, null=True, blank=True)
 
     # username field will replace with email => email and password
     USERNAME_FIELD = 'email'
