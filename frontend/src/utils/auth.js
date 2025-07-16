@@ -1,6 +1,6 @@
 import {useAuthStore} from '../store/auth'
 import axios from './axios'
-import jwt_decode from 'jwt-decode'
+import {jwtDecode } from 'jwt-decode'
 import cookies from 'js-cookie'
 import Cookies from 'js-cookie'
 
@@ -9,7 +9,7 @@ import Cookies from 'js-cookie'
 export const login = async (email, password) => {
     try {
         // request to Djnago login
-        const { data, status } = await axios.post("/user/token", {
+        const { data, status } = await axios.post("/user/token/", {
             email,
             password
         })
@@ -95,7 +95,7 @@ export const setAuthUser = (access_token, refresh_token) => {
     })
 
     // decode token - {id, name....} and assign in variable
-    const user = jwt_decode(access_token) ?? null
+    const user = jwtDecode(access_token) ?? null
 
     // if user not null setUser store.js
     if (user) {
@@ -120,7 +120,7 @@ export const getRefreshToken = async () => {
 
 export const isAccessTokenExpired = (accessToken) => {
     try {
-        const decodedToken = jwt_decode(accessToken)
+        const decodedToken = jwtDecode(accessToken)
 
         // check if access token expired and return True if expired so we get new accesToken
         return decodedToken.exp < Date.now() / 100

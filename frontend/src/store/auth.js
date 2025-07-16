@@ -16,7 +16,7 @@ const useAuthStore = create((set, get) => ({
     // when call replace old with new user data
     setUser: (user) => set({ allUserdata: user }),
     setLoading: (loading) => set({ loading }),
-    setLoggedIn: () => get().allUserdata !== null
+    isLoggedIn: () => get().allUserdata !== null
 
 }))
 
