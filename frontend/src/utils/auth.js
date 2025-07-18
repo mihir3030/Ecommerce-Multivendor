@@ -1,131 +1,109 @@
-import {useAuthStore} from '../store/auth'
-import axios from './axios'
-import {jwtDecode } from 'jwt-decode'
-import cookies from 'js-cookie'
-import Cookies from 'js-cookie'
+import { useAuthStore } from '../store/auth';
+import axios from './axios';
+import { jwtDecode } from 'jwt-decode';
+import cookies from 'js-cookie';
 
-
-// this is login function fetch data and print
+// ✅ LOGIN
 export const login = async (email, password) => {
-    try {
-        // request to Djnago login
-        const { data, status } = await axios.post("/user/token/", {
-            email,
-            password
-        })
-        if (status === 200){
-            // get access token and refresh token
-            setAuthUser(data.access, data.refresh)   // set user info to Zustand Store.js
-        }
-        return {data, error: null}
+  try {
+    const { data, status } = await axios.post('/user/token/', { email, password });
 
-    } catch (error) {
-        return {
-            data: null,
-            error: error.response.data?.detail || "Somthing went wrong"
-        }
+    if (status === 200) {
+      setAuthUser(data.access, data.refresh);
     }
-}
 
+    return { data, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: error.response?.data?.detail || 'Something went wrong',
+    };
+  }
+};
 
-// this is for register user
+// ✅ REGISTER
 export const register = async (full_name, email, phone, password, password2) => {
-    try {
-        const { data } = await axios.post("/user/register/", {
-            full_name, 
-            email, 
-            phone, 
-            password, 
-            password2
-        })
+  try {
+    const { data } = await axios.post('/user/register/', {
+      full_name,
+      email,
+      phone,
+      password,
+      password2,
+    });
 
-        // after register automatically logged in
-        await login(email, password)
-        return {data, error: null}
+    await login(email, password);
+    return { data, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: error.response?.data?.detail || 'Something went wrong',
+    };
+  }
+};
 
-    } catch (error) {
-        return {
-            data: null,
-            error: error.response.data?.detail || "Somthing went wrong"
-        }
-    }
-}
-
-
-// user logout
+// ✅ LOGOUT
 export const logout = () => {
-    cookies.remove("access_token", {path: "/"})
-    cookies.remove("refresh_token", {path: "/"})
+  cookies.remove('access_token', { path: '/' });
+  cookies.remove('refresh_token', { path: '/' });
+  useAuthStore.getState().setUser(null);
+};
 
-    // set user null in our store
-    useAuthStore.getState().setUser(null)
-}
-
-
+// ✅ SET USER (on refresh)
 export const setUser = async () => {
-    const access_token = cookies.get("access_token")
-    const refresh_token = cookies.get("refresh_token")
+  const access_token = cookies.get('access_token');
+  const refresh_token = cookies.get('refresh_token');
 
-    // is not token return empty
-    if (!access_token || !refresh_token) return;
+  if (!access_token || !refresh_token) return;
 
-    // is token expired get new one from refresh token and set user to Store.js
-    if(isAccessTokenExpired(accessToken)){
-        const response = await getRefreshToken(refreshToken)
-        setAuthUser(response.access, response.refresh)
+  const store = useAuthStore.getState();
+
+  try {
+    if (isAccessTokenExpired(access_token)) {
+      const response = await getRefreshToken(refresh_token);
+      setAuthUser(response.access, response.refresh);
+    } else {
+      setAuthUser(access_token, refresh_token);
     }
+  } catch (error) {
+    console.error('Failed to restore user session:', error);
+    logout();
+  } finally {
+    store.setLoading(false);
+  }
+};
 
-    // if token not expired set user
-    else {
-        setAuthUser(accessToken, refreshToken)
-    }
-}
-
-
-
+// ✅ SET AUTH USER (with cookies + Zustand)
 export const setAuthUser = (access_token, refresh_token) => {
-    // set token in COOKIES
-    cookies.set("access_token", access_token, {
-        expires: 1,
-        secure: true
-    })
-    cookies.set("refresh_token", refresh_token, {
-        expires: 7,
-        secure: true
-    })
+  cookies.set('access_token', access_token, { expires: 1, secure: true });
+  cookies.set('refresh_token', refresh_token, { expires: 7, secure: true });
 
-    // decode token - {id, name....} and assign in variable
-    const user = jwtDecode(access_token) ?? null
-
-    // if user not null setUser store.js
+  try {
+    const user = jwtDecode(access_token);
     if (user) {
-        useAuthStore.getState().setUser(user)
+      useAuthStore.getState().setUser(user);
     }
-    useAuthStore.getState().setLoading(false)
-}
+  } catch (err) {
+    console.error('Failed to decode token', err);
+  }
+};
 
+// ✅ REFRESH TOKEN
+export const getRefreshToken = async (refresh_token) => {
+  const response = await axios.post('/user/token/refresh/', {
+    refresh: refresh_token,
+  });
 
-export const getRefreshToken = async () => {
-    //get refresh token
-    const refresh_token = Cookies.get("refresh_token")
+  return response.data;
+};
 
-    // from current refresh token we get new access token from Django
-    const response = await axios.post('user/token/refresh/', {
-        refresh: refresh_token
-    })
-
-    return response.data
-}
-
-
+// ✅ TOKEN EXPIRY CHECK (fixed math)
 export const isAccessTokenExpired = (accessToken) => {
-    try {
-        const decodedToken = jwtDecode(accessToken)
-
-        // check if access token expired and return True if expired so we get new accesToken
-        return decodedToken.exp < Date.now() / 100
-    } catch (error) {
-        console.log(error);
-        return true
-    }
-}
+  try {
+    const decoded = jwtDecode(accessToken);
+    return decoded.exp < Date.now() / 1000;
+  } catch (err) {
+    console.error('Invalid access token', err);
+    return true;
+  }
+};
