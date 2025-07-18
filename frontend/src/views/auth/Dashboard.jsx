@@ -12,12 +12,12 @@ function Dashboard() {
         <div>
           <h2>Dashboard</h2>
           {/* Link is like <a> tage  */}
-          <Link to={"/logout"}>Logout</Link>
+          <Link  to={"/logout"}>Logout</Link>
         </div>
       ) : (
         <div>
-          <Link to={"/login"}>Login</Link>
-          <Link to={"/register"}>Register</Link>
+          <Link className="btn btn-primary" to={"/login"}>Login</Link>
+          <Link className="btn btn-primary" to={"/register"}>Register</Link>
         </div>
       )}
     </>
