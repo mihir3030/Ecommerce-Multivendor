@@ -1,5 +1,6 @@
 from django.urls import path
 from userauths import views as userauths_views
+from store import views as store_views
 
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -11,4 +12,8 @@ urlpatterns = [
     path("user/password-change/", userauths_views.PasswordChangeView.as_view(), name="password-change"),
 
 
+    # STORE endpoints
+    path("category/", store_views.CategoryListView.as_view()),
+    path("products/", store_views.ProductListView.as_view()),
+    path("products/<slug>/", store_views.ProductDetailAPIView.as_view()),
 ]

@@ -80,14 +80,16 @@ class ProductSerializer(serializers.ModelSerializer):
             "color",
         ]
         
-        def __init__(self, *args, **kwargs):
-            super(ProductSerializer, self).__init__(*args, **kwargs)
+    # we use this for depth like category is has own model.
+    # so with this we can get all fields about Category like cat-titile, cat-image etc...
+    def __init__(self, *args, **kwargs):
+        super(ProductSerializer, self).__init__(*args, **kwargs)
 
-            request = self.context.get("request")
-            if request and request.method == "POST":
-                self.Meta.depth = 0
-            else:
-                self.Meta.depth = 3
+        request = self.context.get("request")
+        if request and request.method == "POST":
+            self.Meta.depth = 0
+        else:
+            self.Meta.depth = 3
 
 # Define a serializer for the CartOrderItem model
 class CartSerializer(serializers.ModelSerializer):
